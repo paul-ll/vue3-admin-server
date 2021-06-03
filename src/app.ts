@@ -5,6 +5,12 @@ import bodyparser from 'koa-bodyparser'
 import jwt from 'koa-jwt'
 // routes
 import authRoutes from './routes/auth'
+import accessRoutes from './routes/access'
+import roleRoutes from './routes/roles'
+import roleAccessRoutes from './routes/roleAccess'
+import userRoutes from './routes/user'
+
+// secret
 import { jwtSecret } from './config/auth'
 
 // koa应用实例
@@ -40,6 +46,10 @@ app.use(jwt(({ secret: jwtSecret })).unless({
 // routes
 // 用户验证路由（登录 注册）
 app.use(authRoutes.routes()).use(authRoutes.allowedMethods())
+app.use(accessRoutes.routes()).use(accessRoutes.allowedMethods())
+app.use(roleRoutes.routes()).use(roleRoutes.allowedMethods())
+app.use(roleAccessRoutes.routes()).use(roleAccessRoutes.allowedMethods())
+app.use(userRoutes.routes()).use(userRoutes.allowedMethods())
 
 // listen
 const port = process.env.PORT || '3003'

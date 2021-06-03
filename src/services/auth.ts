@@ -1,11 +1,13 @@
 import UserModel, { RegisterModel, UserModelProps } from '../db/models/user'
 import { UserWhereProps } from './types'
 import { createMd5 } from '../utils/createMD5'
+import { RolesModel, UserRoleModel } from '../db/models'
+import { UserInfo } from './types'
 
 /**
  * 创建用户
  */
- export const createUser = async ({ username, password, email, mobile, status, avatar }: RegisterModel) => {
+ export const createUser = async ({ username, password, email, mobile, status, avatar }: RegisterModel): Promise<UserModelProps> => {
   const result = await UserModel.create({
     username,
     password,
@@ -13,7 +15,7 @@ import { createMd5 } from '../utils/createMD5'
     mobile,
     status
   })
-  return result.toJSON()
+  return result.toJSON() as UserModelProps
 }
 
 
@@ -41,7 +43,33 @@ import { createMd5 } from '../utils/createMD5'
     },
     where,
   })
-  console.log(result,'=====')
   if (result == null) return null
   return result.toJSON() as UserModelProps
+}
+
+// 获取用户信息 包含 角色信息
+export const getUserInfoAndRoles = async (id: number) => {
+  const result = await UserModel.findOne({
+    attributes: ['id', 'username', 'email', 'mobile', 'isSuper', 'status', 'avatar', 'description'],
+    where: {
+      id
+    },
+    include: [ // 联表查询
+      {
+        model: UserRoleModel,
+        attributes: ['id'],
+        include: [
+          {
+            model: RolesModel,
+            attributes: ['id', 'name', 'description']
+          }
+        ]
+      }
+    ]
+  })
+  if (!result) return null
+  const user = result.toJSON() as UserInfo
+  user.roles = user.UserRoles?.map(item => item.Role)
+  delete user.UserRoles
+  return user
 }
